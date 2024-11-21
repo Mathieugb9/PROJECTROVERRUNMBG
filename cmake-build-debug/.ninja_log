@@ -1,0 +1,8 @@
+# ninja log v6
+1	48	1732218178000070216	CMakeFiles/untitled1.dir/main.c.o	ba8ff056e4a123e8
+2	49	1732218178001838245	CMakeFiles/untitled1.dir/stack.c.o	ca228f249dbcb6ed
+1	49	1732218178000380165	CMakeFiles/untitled1.dir/loc.c.o	16f546b674d7a56f
+2	49	1732218178001411550	CMakeFiles/untitled1.dir/queue.c.o	f07a1bd6d45a1d01
+1	50	1732218178000514369	CMakeFiles/untitled1.dir/moves.c.o	cdda7579304d803f
+2	56	1732218178000981813	CMakeFiles/untitled1.dir/map.c.o	8fc72607c42f61
+56	87	1732218178055343121	untitled1	e3ea8d6863049622
