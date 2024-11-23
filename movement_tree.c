@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "movement_tree.h"
+#include <limits.h>
 
 TreeNode* create_node(int node_cost, int movement_type, TreeNode* parent_node) {
     TreeNode* new_node = (TreeNode*)malloc(sizeof(TreeNode));
@@ -39,4 +40,46 @@ void free_tree(TreeNode* root_node) {
     }
     free(root_node->children);
     free(root_node);
+}
+
+TreeNode* find_minimum_leaf(TreeNode* node) {
+    if (node == NULL) return NULL;
+
+
+    if (node->num_children == 0) {
+        return node;
+    }
+
+    TreeNode* min_leaf = NULL;
+    int min_cost = INT_MAX;
+
+    for (int i = 0; i < node->num_children; i++) {
+        TreeNode* leaf = find_minimum_leaf(node->children[i]);
+        if (leaf != NULL && leaf->cost < min_cost) {
+            min_cost = leaf->cost;
+            min_leaf = leaf;
+        }
+    }
+
+    return min_leaf;
+}
+
+
+void trace_path(TreeNode* leaf_node, int* movement_path, int* path_length) {
+    if (leaf_node == NULL || movement_path == NULL || path_length == NULL) return;
+
+    *path_length = 0;
+    TreeNode* current = leaf_node;
+
+    while (current->parent != NULL) {
+        movement_path[(*path_length)++] = current->move;
+        current = current->parent;
+    }
+
+
+    for (int i = 0; i < *path_length / 2; i++) {
+        int temp = movement_path[i];
+        movement_path[i] = movement_path[*path_length - i - 1];
+        movement_path[*path_length - i - 1] = temp;
+    }
 }

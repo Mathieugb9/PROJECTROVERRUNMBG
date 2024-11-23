@@ -61,6 +61,29 @@ int main() {
     printf("Tree structure:\n");
     display_tree(root, 0);
 
+
+    printf("Tree structure:\n");
+    display_tree(root, 0);
+
+
+    TreeNode* min_leaf = find_minimum_leaf(root);
+    if (min_leaf != NULL) {
+        printf("Minimum cost leaf found: Cost = %d\n", min_leaf->cost);
+
+
+        int movement_path[100];
+        int path_length = 0;
+        trace_path(min_leaf, movement_path, &path_length);
+
+        printf("Optimal path (moves): ");
+        for (int i = 0; i < path_length; i++) {
+            printf("%d ", movement_path[i]);
+        }
+        printf("\n");
+    }
+
     free_tree(root);
+
+
     return 0;
 }
