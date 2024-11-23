@@ -7,7 +7,9 @@
 
 /* prototypes of local functions */
 /* local functions are used only in this file, as helper functions */
-
+static char _moves[7][8] = {
+        "F 10m", "F 20m", "F 30m", "B 10m", "T left", "T right", "U-turn"
+};
 /**
  * @brief Function to rotate the robot according to a move and its actual orientation
  * @param ori : the actual orientation of the robot
@@ -183,3 +185,4 @@ t_move *getRandomMoves(int N)
     }
     return moves;
 }
+
