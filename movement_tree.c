@@ -1,13 +1,10 @@
 #include <stdlib.h>
 #include <stdio.h>
-#include "movement_tree.h"
 #include <limits.h>
+#include "movement_tree.h"
 #include "map.h"
 #include "loc.h"
 #include "moves.h"
-#include <time.h>
-
-
 
 TreeNode* create_node(int node_cost, int movement_type, TreeNode* parent_node) {
     TreeNode* new_node = (TreeNode*)malloc(sizeof(TreeNode));
@@ -23,7 +20,6 @@ TreeNode* create_node(int node_cost, int movement_type, TreeNode* parent_node) {
     return new_node;
 }
 
-
 void add_child(TreeNode* parent_node, TreeNode* child_node) {
     if (parent_node == NULL || child_node == NULL) return;
 
@@ -37,7 +33,6 @@ void add_child(TreeNode* parent_node, TreeNode* child_node) {
     parent_node->children[parent_node->num_children - 1] = child_node;
 }
 
-
 void free_tree(TreeNode* root_node) {
     if (root_node == NULL) return;
 
@@ -50,7 +45,6 @@ void free_tree(TreeNode* root_node) {
 
 TreeNode* find_minimum_leaf(TreeNode* node) {
     if (node == NULL) return NULL;
-
 
     if (node->num_children == 0) {
         return node;
@@ -69,7 +63,6 @@ TreeNode* find_minimum_leaf(TreeNode* node) {
 
     return min_leaf;
 }
-
 
 void trace_path(TreeNode* leaf_node, int* movement_path, int* path_length) {
     if (leaf_node == NULL || movement_path == NULL || path_length == NULL) return;
@@ -92,25 +85,20 @@ void trace_path(TreeNode* leaf_node, int* movement_path, int* path_length) {
 
 t_localisation apply_move(t_localisation loc, t_move move, t_map* map) {
     if (loc.num_moves_allowed <= 0) {
-        printf("No moves allowed. MARC must stop.\n");
         loc.pos.x = -1;
         loc.pos.y = -1;
         return loc;
     }
 
-    printf("Applying move: %s\n", getMoveAsString(move));
-
     if (move >= T_LEFT && move <= U_TURN) {
         loc.ori = rotate(loc.ori, move);
         loc.num_moves_allowed--;
-        printf("New orientation: %d, Remaining moves: %d\n", loc.ori, loc.num_moves_allowed);
         return loc;
     }
 
     t_localisation new_loc = translate(loc, move);
 
     if (!isValidLocalisation(new_loc.pos, map->x_max, map->y_max)) {
-        printf("Out of bounds: (%d, %d). Stopping MARC.\n", new_loc.pos.x, new_loc.pos.y);
         new_loc.pos.x = -1;
         new_loc.pos.y = -1;
         return new_loc;
@@ -119,41 +107,20 @@ t_localisation apply_move(t_localisation loc, t_move move, t_map* map) {
     int soil_type = map->soils[new_loc.pos.y][new_loc.pos.x];
 
     if (soil_type == CREVASSE) {
-        printf("MARC fell into a crevasse at (%d, %d). Stopping.\n", new_loc.pos.x, new_loc.pos.y);
         new_loc.pos.x = -1;
         new_loc.pos.y = -1;
         return new_loc;
     }
 
     if (soil_type == REG) {
-        printf("MARC is on a REG terrain. Limiting moves to 4.\n");
         new_loc.num_moves_allowed = 4;
     } else {
         new_loc.num_moves_allowed = loc.num_moves_allowed - 1;
     }
 
-    printf("Move successful. New position: (%d, %d), Remaining moves: %d\n",
-           new_loc.pos.x, new_loc.pos.y, new_loc.num_moves_allowed);
-
     return new_loc;
 }
 
-
-t_move* generate_random_moves(int N) {
-    static t_move all_moves[] = {F_10, F_20, F_30, B_10, T_LEFT, T_RIGHT, U_TURN};
-    t_move* random_moves = malloc(N * sizeof(t_move));
-    if (!random_moves) {
-        fprintf(stderr, "Memory allocation failed for random moves.\n");
-        exit(EXIT_FAILURE);
-    }
-
-    srand(time(NULL));
-    for (int i = 0; i < N; i++) {
-        random_moves[i] = all_moves[rand() % 7];
-    }
-
-    return random_moves;
-}
 void build_tree(TreeNode* node, t_localisation loc, t_map* map, t_move* moves, int depth, int max_depth) {
     if (depth >= max_depth) {
         return;
@@ -163,7 +130,7 @@ void build_tree(TreeNode* node, t_localisation loc, t_map* map, t_move* moves, i
         t_localisation new_loc = apply_move(loc, moves[i], map);
 
         if (new_loc.pos.x == -1 && new_loc.pos.y == -1) {
-            continue; // Invalid move, skip this branch
+            continue;
         }
 
         int cost = map->costs[new_loc.pos.y][new_loc.pos.x];
@@ -175,27 +142,32 @@ void build_tree(TreeNode* node, t_localisation loc, t_map* map, t_move* moves, i
 }
 
 TreeNode* construct_phase_tree(t_localisation start_loc, t_map* map) {
-    t_move* moves = generate_random_moves(9);
+    t_move* moves = getRandomMoves(9);
     TreeNode* root = create_node(map->costs[start_loc.pos.y][start_loc.pos.x], -1, NULL);
-    build_tree(root, start_loc, map, moves, 0, 5);
+    build_tree(root, start_loc, map, moves, 0, 5); // Build up to depth 5
     free(moves);
     return root;
 }
 
 
+void display_optimal_route(TreeNode* root) {
+    if (root == NULL) return;
 
-void display_tree(TreeNode* node, int level) {
-    if (node == NULL) {
+    TreeNode* min_leaf = find_minimum_leaf(root);
+    if (min_leaf == NULL) {
+        printf("No valid path found.\n");
         return;
     }
 
-    for (int i = 0; i < level; i++) {
-        printf("  ");
-    }
-    printf("Level %d: Cost = %d, Move = %s\n", level, node->cost,
-           (node->move == -1) ? "Start" : getMoveAsString(node->move));
+    int movement_path[100];
+    int path_length = 0;
+    trace_path(min_leaf, movement_path, &path_length);
 
-    for (int i = 0; i < node->num_children; i++) {
-        display_tree(node->children[i], level + 1);
+    printf("Optimal Route Found:\n");
+    printf("Total Cost: %d\n", min_leaf->cost);
+    printf("Moves: ");
+    for (int i = 0; i < path_length; i++) {
+        printf("%s ", getMoveAsString(movement_path[i]));
     }
+    printf("\n");
 }
