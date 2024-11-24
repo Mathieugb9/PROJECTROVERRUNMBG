@@ -13,6 +13,8 @@ typedef struct TreeNode {
     struct TreeNode* parent;
 } TreeNode;
 
+
+
 TreeNode* create_node(int node_cost, int movement_type, TreeNode* parent_node);
 void add_child(TreeNode* parent_node, TreeNode* child_node);
 void free_tree(TreeNode* root_node);
