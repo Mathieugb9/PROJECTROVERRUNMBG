@@ -5,13 +5,20 @@
 #include "loc.h"
 #include "moves.h"
 
-
 void print_localisation(t_localisation loc) {
     printf("Position: (%d, %d), Orientation: %d, Moves allowed: %d\n",
            loc.pos.x, loc.pos.y, loc.ori, loc.num_moves_allowed);
 }
 
-
+void display_map_with_costs(t_map* map) {
+    printf("\n--- Map with Costs ---\n");
+    for (int y = 0; y < map->y_max; y++) {
+        for (int x = 0; x < map->x_max; x++) {
+            printf("[%d] ", map->costs[y][x]);
+        }
+        printf("\n");
+    }
+}
 void simulate_full_path(t_map* map, t_localisation start_loc, int verbose) {
     printf("\n--- Starting MARC Path Simulation ---\n");
 
@@ -27,7 +34,6 @@ void simulate_full_path(t_map* map, t_localisation start_loc, int verbose) {
             break;
         }
 
-
         TreeNode* root = construct_phase_tree(current_loc, map);
         TreeNode* min_leaf = find_minimum_leaf(root);
 
@@ -37,16 +43,20 @@ void simulate_full_path(t_map* map, t_localisation start_loc, int verbose) {
             return;
         }
 
-
         int phase_moves[100];
         int path_length = 0;
         trace_path(min_leaf, phase_moves, &path_length);
 
+        printf("\n--- Phase %d ---\n", phase);
+        printf("Optimal Path: ");
+        for (int i = 0; i < path_length; i++) {
+            printf("%s ", getMoveAsString(phase_moves[i]));
+        }
+        printf("\n");
 
         for (int i = 0; i < path_length; i++) {
             movement_path[total_moves++] = phase_moves[i];
             current_loc = apply_move(current_loc, phase_moves[i], map);
-
 
             if (current_loc.pos.x == -1 || current_loc.pos.y == -1) {
                 printf("\nMARC went out of bounds or hit a crevasse. Simulation terminated.\n");
@@ -54,23 +64,25 @@ void simulate_full_path(t_map* map, t_localisation start_loc, int verbose) {
                 return;
             }
 
+            // ajoute le cout current , correction du probleme
+            int step_cost = map->costs[current_loc.pos.y][current_loc.pos.x];
+            total_cost += step_cost;
+
             if (verbose) {
-                printf("Phase %d, Move %d: %s -> Position: (%d, %d), Cost: %d\n",
-                       phase, i + 1, getMoveAsString(phase_moves[i]),
-                       current_loc.pos.x, current_loc.pos.y, map->costs[current_loc.pos.y][current_loc.pos.x]);
+                printf("Move %d: %s -> Position: (%d, %d), Step Cost: %d, Total Cost: %d\n",
+                       i + 1, getMoveAsString(phase_moves[i]),
+                       current_loc.pos.x, current_loc.pos.y, step_cost, total_cost);
             }
         }
 
-        total_cost += min_leaf->cost;
         free_tree(root);
         phase++;
     }
 
-
     printf("\n--- Simulation Complete ---\n");
     printf("Total Cost: %d\n", total_cost);
-    printf("Total Phases: %d\n", phase);
-    printf("Path Taken: \n");
+    printf("Total Moves: %d\n", total_moves);
+    printf("Path Taken: ");
     for (int i = 0; i < total_moves; i++) {
         printf("%s ", getMoveAsString(movement_path[i]));
     }

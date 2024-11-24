@@ -10,7 +10,7 @@ t_localisation loc_init(int x, int y, t_orientation ori)
     loc.pos.x = x;
     loc.pos.y = y;
     loc.ori = ori;
-    loc.num_moves_allowed = 5;
+    loc.num_moves_allowed = 12;
     return loc;
 }
 
