@@ -15,4 +15,6 @@ add_executable(untitled1 main.c
         stack.c
         stack.h
         movement_tree.c
-        movement_tree.h)
+        movement_tree.h
+        Complexity.c
+        Complexity.h)

@@ -5,6 +5,7 @@
 #include "map.h"
 #include "loc.h"
 #include "moves.h"
+#include "Complexity.h"
 
 TreeNode* create_node(int node_cost, int movement_type, TreeNode* parent_node) {
     TreeNode* new_node = (TreeNode*)malloc(sizeof(TreeNode));
@@ -120,7 +121,6 @@ t_localisation apply_move(t_localisation loc, t_move move, t_map* map) {
 
     return new_loc;
 }
-
 void build_tree(TreeNode* node, t_localisation loc, t_map* map, t_move* moves, int depth, int max_depth) {
     if (depth >= max_depth) {
         return;
@@ -133,6 +133,7 @@ void build_tree(TreeNode* node, t_localisation loc, t_map* map, t_move* moves, i
             continue;
         }
 
+        increment_operations(1);
         int cost = map->costs[new_loc.pos.y][new_loc.pos.x];
         TreeNode* child = create_node(cost, moves[i], node);
         add_child(node, child);
@@ -140,11 +141,10 @@ void build_tree(TreeNode* node, t_localisation loc, t_map* map, t_move* moves, i
         build_tree(child, new_loc, map, moves, depth + 1, max_depth);
     }
 }
-
 TreeNode* construct_phase_tree(t_localisation start_loc, t_map* map) {
     t_move* moves = getRandomMoves(9);
     TreeNode* root = create_node(map->costs[start_loc.pos.y][start_loc.pos.x], -1, NULL);
-    build_tree(root, start_loc, map, moves, 0, 5); // Build up to depth 5
+    build_tree(root, start_loc, map, moves, 0, 5);
     free(moves);
     return root;
 }
